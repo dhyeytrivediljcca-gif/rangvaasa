@@ -1,0 +1,486 @@
+/* =====================================================
+   RANGVAASA 2026 — Gujarati Garba Loading Experience
+   “એ હાલો…” Traditional Cultural Intro
+   ===================================================== */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: #FAF7F0;
+  color: #30221E;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}
+
+[data-theme="dark"] .loader {
+  background-color: #75121B;
+  color: #FAF7F0;
+}
+
+/* --- Ambient Glow Halo & Khadi Texture Behind Stage --- */
+.loader__backdrop-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90vw, 680px);
+  height: min(90vw, 680px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(243, 184, 68, 0.22) 0%,
+    rgba(232, 74, 53, 0.08) 50%,
+    transparent 72%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] .loader__backdrop-aura {
+  background: radial-gradient(
+    circle,
+    rgba(243, 184, 68, 0.28) 0%,
+    rgba(244, 113, 74, 0.14) 50%,
+    transparent 75%
+  );
+}
+
+/* --- Decorative Corner Torans (Festive Gujarati Borders) --- */
+.loader__toran {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-gold);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.65;
+}
+
+.loader__toran-line {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-gold), transparent);
+}
+
+.loader__toran-bead {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.loader__toran--tl {
+  top: 1.5rem;
+  left: 1.5rem;
+}
+
+.loader__toran--tr {
+  top: 1.5rem;
+  right: 1.5rem;
+  flex-direction: row-reverse;
+}
+
+.loader__toran--tr .loader__toran-line {
+  background: linear-gradient(-90deg, var(--accent-gold), transparent);
+}
+
+.loader__toran--bl {
+  bottom: 1.5rem;
+  left: 1.5rem;
+}
+
+.loader__toran--br {
+  bottom: 1.5rem;
+  right: 1.5rem;
+  flex-direction: row-reverse;
+}
+
+.loader__toran--br .loader__toran-line {
+  background: linear-gradient(-90deg, var(--accent-gold), transparent);
+}
+
+/* --- Central Stage --- */
+.loader__stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* --- Background Rotating Folk Mandala Ring --- */
+.loader__mandala-wrap {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(260px, 72vw, 420px);
+  height: clamp(260px, 72vw, 420px);
+  pointer-events: none;
+  z-index: 0;
+  animation: loader-mandala-spin 75s linear infinite;
+}
+
+.loader__mandala-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@keyframes loader-mandala-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Traditional Gujarati Dhol / Dholak Centerpiece --- */
+.loader__dhol-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.loader__dhol-container {
+  position: relative;
+  width: clamp(230px, 66vw, 350px);
+  aspect-ratio: 380 / 220;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  will-change: transform;
+}
+
+.loader__dhol-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 14px 28px rgba(48, 20, 14, 0.18));
+}
+
+[data-theme="dark"] .loader__dhol-svg {
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.45));
+}
+
+/* --- Dhol Garba Rhythm Motion (Authentic 3-Beat Rocking Cadence) --- */
+.loader__dhol--dancing {
+  animation: dhol-garba-beat 1.6s ease-in-out infinite;
+}
+
+@keyframes dhol-garba-beat {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0) scale(1);
+  }
+  18% {
+    /* Bass beat strike */
+    transform: rotate(-2.4deg) translateY(-2.5px) scale(1.02);
+  }
+  42% {
+    /* Treble beat response */
+    transform: rotate(2deg) translateY(-1.5px) scale(1.015);
+  }
+  68% {
+    /* Second accent beat */
+    transform: rotate(-1.5deg) translateY(-3px) scale(1.022);
+  }
+  84% {
+    /* Syncopated recovery */
+    transform: rotate(0.8deg) translateY(-0.5px) scale(1);
+  }
+}
+
+/* --- Sonic Rhythm Accents at Drumheads --- */
+.loader__beat-accent {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.loader__beat-accent--left {
+  left: -8px;
+}
+
+.loader__beat-accent--right {
+  right: -8px;
+}
+
+.loader__beat-pulse {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-gold);
+  opacity: 0;
+}
+
+.loader__beat-sparkle {
+  color: var(--accent-gold);
+  font-size: 1rem;
+  opacity: 0;
+}
+
+.loader__dhol--dancing .loader__beat-accent--left .loader__beat-pulse {
+  animation: bass-wave 1.6s ease-out infinite;
+}
+
+.loader__dhol--dancing .loader__beat-accent--left .loader__beat-sparkle {
+  animation: bass-spark 1.6s ease-out infinite;
+}
+
+.loader__dhol--dancing .loader__beat-accent--right .loader__beat-pulse {
+  animation: treble-wave 1.6s ease-out infinite;
+  animation-delay: 0.38s;
+}
+
+.loader__dhol--dancing .loader__beat-accent--right .loader__beat-sparkle {
+  animation: treble-spark 1.6s ease-out infinite;
+  animation-delay: 0.38s;
+}
+
+@keyframes bass-wave {
+  0% { transform: scale(0.6); opacity: 0; }
+  18% { transform: scale(1.6); opacity: 0.85; }
+  35% { transform: scale(2.2); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes bass-spark {
+  0% { transform: scale(0.6) rotate(0deg); opacity: 0; }
+  18% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+  35% { transform: scale(0.8) rotate(90deg); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes treble-wave {
+  0% { transform: scale(0.6); opacity: 0; }
+  22% { transform: scale(1.5); opacity: 0.8; }
+  40% { transform: scale(2.1); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes treble-spark {
+  0% { transform: scale(0.6) rotate(0deg); opacity: 0; }
+  22% { transform: scale(1.2) rotate(-45deg); opacity: 1; }
+  40% { transform: scale(0.8) rotate(-90deg); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* --- Content Typography --- */
+.loader__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Eyebrow */
+.loader__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--accent-red);
+}
+
+[data-theme="dark"] .loader__eyebrow {
+  color: var(--accent-gold);
+}
+
+.loader__gujarati-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--bg-surface, #FFFDF8);
+  border: 1px solid var(--border-strong, #D6C8B8);
+  color: var(--accent-red, #B8202D);
+  font-family: 'Noto Serif Gujarati', 'Rasa', serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* --- The Gujarati Title: “એ હાલો…” --- */
+.loader__phrase {
+  font-family: 'Noto Serif Gujarati', 'Rasa', 'Shruti', 'Gujarati MT', 'Lohit Gujarati', Georgia, serif;
+  font-size: clamp(2.8rem, 8.5vw, 4.8rem);
+  font-weight: 700;
+  color: #B8202D;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  text-shadow: 0 2px 16px rgba(184, 32, 45, 0.15);
+}
+
+[data-theme="dark"] .loader__phrase {
+  color: #FAF7F0;
+  text-shadow: 0 2px 20px rgba(243, 184, 68, 0.28);
+}
+
+.loader__word {
+  display: inline-block;
+}
+
+.loader__word-spacer {
+  display: inline-block;
+  width: 0.2em;
+}
+
+.loader__ellipsis {
+  display: inline-flex;
+  align-items: baseline;
+  letter-spacing: -0.05em;
+  color: var(--accent-gold-deep, #D49B2E);
+}
+
+[data-theme="dark"] .loader__ellipsis {
+  color: var(--accent-gold, #F3B844);
+}
+
+.loader__dot {
+  display: inline-block;
+}
+
+/* Fine Decorative Accent Divider */
+.loader__line {
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-red, #B8202D) 30%,
+    var(--accent-gold, #F3B844) 50%,
+    var(--accent-red, #B8202D) 70%,
+    transparent 100%
+  );
+  margin: 0.35rem 0 0.5rem;
+  transform-origin: center;
+}
+
+/* Meaning & Festival Tagline */
+.loader__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.loader__meaning {
+  font-size: clamp(1.15rem, 3.2vw, 1.45rem);
+  font-style: italic;
+  font-weight: 500;
+  color: #766B62;
+  line-height: 1.35;
+}
+
+[data-theme="dark"] .loader__meaning {
+  color: #F2DED0;
+}
+
+.loader__festival-tag {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent-gold-deep, #D49B2E);
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .loader__festival-tag {
+  color: var(--accent-gold, #F3B844);
+}
+
+/* --- Mobile Responsiveness (320px - 480px) --- */
+@media (max-width: 480px) {
+  .loader__stage {
+    padding: 0 1rem;
+  }
+
+  .loader__dhol-wrap {
+    margin-bottom: 0.85rem;
+  }
+
+  .loader__dhol-container {
+    width: clamp(210px, 72vw, 290px);
+  }
+
+  .loader__phrase {
+    font-size: clamp(2.4rem, 11vw, 3.4rem);
+  }
+
+  .loader__line {
+    width: 100px;
+  }
+
+  .loader__meaning {
+    font-size: 1.05rem;
+  }
+
+  .loader__festival-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+  }
+
+  .loader__toran {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .loader__dhol-container {
+    width: 200px;
+  }
+
+  .loader__phrase {
+    font-size: 2.2rem;
+  }
+
+  .loader__meaning {
+    font-size: 0.95rem;
+  }
+}
+
+/* --- Reduced Motion Support --- */
+@media (prefers-reduced-motion: reduce) {
+  .loader__mandala-wrap {
+    animation: none !important;
+  }
+
+  .loader__dhol--dancing {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .loader__beat-pulse,
+  .loader__beat-sparkle {
+    display: none !important;
+  }
+}

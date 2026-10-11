@@ -1,0 +1,216 @@
+/* =====================================================
+   RANGVAASA 2026 — Experience Section Styles
+   ===================================================== */
+
+.experience {
+  background-color: var(--bg-secondary);
+  transition: var(--transition-theme);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.experience__marker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.experience__marker-line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.experience__header {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto clamp(2.5rem, 5vw, 4.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.experience__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--accent-red);
+}
+
+.experience__eyebrow-icon {
+  color: var(--accent-gold);
+}
+
+.experience__title {
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.experience__title em {
+  font-style: italic;
+  color: var(--accent-red);
+}
+
+.experience__copy {
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* --- 4-Pillar Editorial Grid --- */
+.experience__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1rem, 2.5vw, 2rem);
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.experience__card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: clamp(1.35rem, 2.5vw, 2.1rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+}
+
+.experience__card:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-md);
+}
+
+.experience__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.experience__card-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-gold-deep);
+  letter-spacing: 0.05em;
+}
+
+.experience__card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-red);
+  flex-shrink: 0;
+}
+
+.experience__card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.experience__card-sub {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent-gold-deep);
+}
+
+.experience__card-title {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.experience__card-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+}
+
+/* --- Highlight Quote Banner --- */
+.experience__quote-banner {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.experience__quote-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.experience__quote-mark {
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--accent-gold);
+  opacity: 0.4;
+  margin-bottom: -1.5rem;
+}
+
+.experience__quote-text {
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.experience__quote-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.experience__quote-author {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent-red);
+}
+
+.experience__quote-tag {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* --- Breakpoints --- */
+@media (max-width: 1080px) {
+  .experience__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .experience__grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}

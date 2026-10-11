@@ -1,0 +1,440 @@
+/* =====================================================
+   RANGVAASA 2026 — Editorial Masthead Navbar Styles
+   ===================================================== */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--nav-border);
+  transition: var(--transition-theme), box-shadow 0.25s ease;
+  height: 82px;
+  display: flex;
+  align-items: center;
+}
+
+.navbar--scrolled {
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar__container {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 3.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* --- Brand Group --- */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.navbar__logos {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.navbar__emblem {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+}
+
+.navbar__logo-sep {
+  color: var(--border-strong);
+  font-size: 0.75rem;
+  margin: 0 0.1rem;
+}
+
+.navbar__aira-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(100, 50, 220, 0.25));
+  transition: transform 0.2s ease;
+}
+
+.navbar__brand:hover .navbar__aira-img {
+  transform: scale(1.05);
+}
+
+.navbar__brand-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.navbar__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.navbar__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+}
+
+.navbar__year-pill {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-gold);
+}
+
+.navbar__subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* --- Right Group --- */
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 2.25rem;
+}
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar__link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  text-decoration: none;
+  position: relative;
+  padding: 0.35rem 0;
+  transition: color 0.2s ease;
+}
+
+.navbar__link-idx {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.navbar__link-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.navbar__link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent-red);
+  transition: width 0.25s ease;
+}
+
+.navbar__link:hover .navbar__link-text {
+  color: var(--text-primary);
+}
+
+.navbar__link:hover::after {
+  width: 100%;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+/* Theme Toggle */
+.navbar__theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.navbar__theme-toggle:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  transform: scale(1.05);
+}
+
+.navbar__theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Magnetic CTA */
+.navbar__cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.35rem;
+  background-color: var(--accent-red);
+  color: #FFFFFF;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(184, 32, 45, 0.25);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.navbar__cta-btn:hover {
+  background-color: var(--accent-vermilion);
+  box-shadow: 0 6px 20px rgba(184, 32, 45, 0.35);
+}
+
+.navbar__cta-arrow {
+  transition: transform 0.2s ease;
+}
+
+.navbar__cta-btn:hover .navbar__cta-arrow {
+  transform: translate(2px, -2px);
+}
+
+/* Mobile Toggle */
+.navbar__mobile-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* Mobile Drawer Backdrop */
+.navbar__backdrop {
+  position: fixed;
+  top: 82px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 998;
+}
+
+/* Mobile Drawer */
+.navbar__drawer {
+  position: absolute;
+  top: 82px;
+  left: 0;
+  right: 0;
+  background-color: var(--nav-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--nav-border);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  z-index: 999;
+}
+
+.navbar__drawer-inner {
+  padding: 1.25rem clamp(1.25rem, 4vw, 3.5rem) 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.navbar__drawer-header {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border);
+}
+
+.navbar__drawer-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: color 0.2s ease;
+  min-height: 44px;
+}
+
+.navbar__drawer-idx {
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.navbar__drawer-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.navbar__drawer-link:hover .navbar__drawer-label {
+  color: var(--accent-red);
+}
+
+.navbar__drawer-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.9rem 1.5rem;
+  background-color: var(--accent-red);
+  color: #FFFFFF;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  border-radius: 999px;
+  min-height: 48px;
+}
+
+/* Breakpoints */
+@media (max-width: 920px) {
+  .navbar__links {
+    display: none;
+  }
+  
+  .navbar__mobile-btn {
+    display: flex;
+  }
+}
+
+@media (max-width: 540px) {
+  .navbar {
+    height: 72px;
+  }
+  
+  .navbar__backdrop {
+    top: 72px;
+  }
+
+  .navbar__drawer {
+    top: 72px;
+  }
+
+  .navbar__container {
+    padding: 0 1rem;
+    gap: 0.75rem;
+  }
+  
+  .navbar__emblem {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .navbar__aira-img {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .navbar__title {
+    font-size: 0.92rem;
+  }
+  
+  .navbar__subtitle {
+    font-size: 0.58rem;
+  }
+  
+  .navbar__cta-btn {
+    display: none;
+  }
+
+  .navbar__theme-toggle,
+  .navbar__mobile-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+/* Ultra-compact screens (320px - 375px) */
+@media (max-width: 375px) {
+  .navbar__container {
+    padding: 0 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .navbar__logos {
+    gap: 0.25rem;
+  }
+
+  .navbar__emblem {
+    width: 32px;
+    height: 32px;
+  }
+
+  .navbar__aira-img {
+    width: 25px;
+    height: 25px;
+  }
+
+  .navbar__logo-sep {
+    font-size: 0.65rem;
+    margin: 0;
+  }
+
+  .navbar__title {
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+  }
+
+  .navbar__year-pill {
+    font-size: 0.62rem;
+  }
+
+  .navbar__subtitle {
+    display: none; /* Hide subtitle to avoid colliding with action buttons on <= 375px */
+  }
+
+  .navbar__actions {
+    gap: 0.45rem;
+  }
+
+  .navbar__theme-toggle,
+  .navbar__mobile-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+}

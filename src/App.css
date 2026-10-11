@@ -1,0 +1,9 @@
+.app {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  transition: var(--transition-theme);
+}
+
+#main-content {
+  /* Skip link target */
+}

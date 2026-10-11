@@ -1,0 +1,651 @@
+/* =====================================================
+   RANGVAASA 2026 — Digital Pass Generator Styles
+   ===================================================== */
+
+.pass-section {
+  background-color: var(--bg-primary);
+  transition: var(--transition-theme);
+}
+
+.pass-section__marker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.pass-section__marker-line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.pass-section__header {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto clamp(2rem, 5vw, 3.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pass-section__eyebrow {
+  color: var(--accent-red);
+}
+
+.pass-section__title {
+  color: var(--text-primary);
+}
+
+.pass-section__desc {
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  color: var(--text-secondary);
+}
+
+.pass-section__wrapper {
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* --- Form --- */
+.pass-form {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pass-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pass-form__label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+.pass-form__req {
+  color: var(--accent-red);
+}
+
+.pass-form__input,
+.pass-form__select {
+  width: 100%;
+  padding: 0.85rem 1.15rem;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.pass-form__input:focus,
+.pass-form__select:focus {
+  border-color: var(--accent-red);
+  box-shadow: 0 0 0 3px rgba(184, 32, 45, 0.15);
+}
+
+.pass-form__input--error {
+  border-color: var(--accent-red) !important;
+}
+
+.pass-form__error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: var(--accent-red);
+}
+
+.pass-form__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem 2rem;
+  background-color: var(--accent-red);
+  color: #FFFFFF;
+  border-radius: 999px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 16px rgba(184, 32, 45, 0.28);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.pass-form__submit:hover {
+  background-color: var(--accent-vermilion);
+  box-shadow: 0 8px 24px rgba(184, 32, 45, 0.38);
+}
+
+.pass-form__note {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* --- Pass Display View --- */
+.pass-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+.pass-display__card-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* 3D Tilt Wrapper */
+.pass-tilt-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* --- The Physical Ticket Card --- */
+.pass-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--pass-bg);
+  border: 2px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.pass-card__inner-border {
+  position: absolute;
+  inset: 6px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+/* Pass Card Header */
+.pass-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pass-card__logos {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pass-card__crest {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.pass-card__logo-sep {
+  color: var(--border-strong);
+  font-size: 0.8rem;
+  margin: 0 0.1rem;
+}
+
+.pass-card__aira-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(100, 50, 220, 0.25));
+}
+
+.pass-card__org-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.pass-card__org-super {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+}
+
+.pass-card__org-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--accent-gold-deep);
+  font-weight: 600;
+}
+
+/* Perforation Notch Strip */
+.pass-card__notch-strip {
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 -1.5rem;
+}
+
+.pass-card__notch {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-strong);
+  z-index: 2;
+}
+
+.pass-card__notch--left {
+  left: -11px;
+}
+
+.pass-card__notch--right {
+  right: -11px;
+}
+
+.pass-card__dashed-line {
+  width: calc(100% - 30px);
+  height: 1px;
+  border-top: 1.5px dashed var(--border-strong);
+}
+
+/* Event Block */
+.pass-card__event-block {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pass-card__presents {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--accent-gold-deep);
+}
+
+.pass-card__event-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-red);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pass-card__year-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.pass-card__year-badge {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-gold-deep);
+  letter-spacing: 0.1em;
+}
+
+.pass-card__festival-type {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--text-secondary);
+}
+
+/* Attendee Details */
+.pass-card__attendee {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pass-card__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.pass-card__label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+}
+
+.pass-card__name {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.pass-card__sem {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-red);
+  text-align: right;
+}
+
+/* Schedule Info */
+.pass-card__schedule {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.pass-card__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pass-card__meta-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+.pass-card__meta-val {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+/* Footer Stamp */
+.pass-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.pass-card__serial {
+  display: flex;
+  flex-direction: column;
+}
+
+.pass-card__serial-code {
+  font-family: monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.pass-card__serial-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-gold-deep);
+}
+
+.pass-card__stamp {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-red);
+  border: 1px dashed var(--accent-red);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+}
+
+/* --- Control Buttons --- */
+.pass-display__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.pass-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1.45rem;
+  border-radius: 999px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pass-btn--pdf {
+  background-color: var(--accent-red);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(184, 32, 45, 0.28);
+}
+
+.pass-btn--pdf:hover:not(:disabled) {
+  background-color: var(--accent-vermilion);
+  box-shadow: 0 8px 24px rgba(184, 32, 45, 0.38);
+}
+
+.pass-btn--png {
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--accent-gold-deep);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.pass-btn--png:hover:not(:disabled) {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.pass-btn--pdf:disabled,
+.pass-btn--png:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.pass-btn--edit,
+.pass-btn--reset {
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-strong);
+  color: var(--text-primary);
+}
+
+.pass-btn--edit:hover,
+.pass-btn--reset:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+/* Feedback Status */
+.pass-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pass-status--success {
+  background-color: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #16a34a;
+}
+
+.pass-status--error {
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.pass-display__disclaimer {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 440px;
+  margin: 0.25rem auto 0;
+  padding: 0 0.5rem;
+}
+
+/* --- Mobile Responsiveness (320px - 480px) --- */
+@media (max-width: 480px) {
+  .pass-form {
+    padding: 1.5rem 1.15rem;
+    gap: 1.25rem;
+  }
+
+  .pass-form__input,
+  .pass-form__select {
+    font-size: 1rem; /* Prevents auto-zoom in iOS Safari */
+    min-height: 46px;
+  }
+
+  .pass-card {
+    padding: 1.2rem 0.95rem;
+    gap: 0.95rem;
+    border-radius: 16px;
+  }
+
+  .pass-card__header {
+    gap: 0.5rem;
+  }
+
+  .pass-card__crest {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pass-card__aira-img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .pass-card__org-super {
+    font-size: 0.7rem;
+  }
+
+  .pass-card__org-sub {
+    font-size: 0.56rem;
+  }
+
+  .pass-card__event-title {
+    font-size: clamp(2rem, 9vw, 2.45rem);
+    letter-spacing: 0.05em;
+  }
+
+  .pass-card__attendee {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .pass-card__name {
+    font-size: clamp(1.15rem, 5vw, 1.35rem);
+    word-break: break-word;
+  }
+
+  .pass-card__sem {
+    font-size: 0.85rem;
+  }
+
+  .pass-card__schedule {
+    gap: 0.25rem;
+  }
+
+  .pass-card__meta-label {
+    font-size: 0.52rem;
+  }
+
+  .pass-card__meta-val {
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+  }
+
+  .pass-card__stamp {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.35rem;
+  }
+
+  .pass-display__actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  .pass-btn {
+    width: 100%;
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pass-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .pass-card__notch-strip {
+    margin: 0 -0.75rem;
+  }
+
+  .pass-card__event-title {
+    font-size: 1.85rem;
+  }
+}

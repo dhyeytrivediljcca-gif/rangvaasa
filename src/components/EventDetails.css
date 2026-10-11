@@ -1,0 +1,241 @@
+/* =====================================================
+   RANGVAASA 2026 — Event Details Styles
+   ===================================================== */
+
+.details {
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition-theme);
+}
+
+.details__marker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.details__marker-line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.details__header {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.details__eyebrow {
+  color: var(--accent-red);
+}
+
+.details__title {
+  color: var(--text-primary);
+}
+
+.details__desc {
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  color: var(--text-secondary);
+}
+
+/* --- 3-Card Grid --- */
+.details__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.details__card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: clamp(1.5rem, 2.5vw, 2.2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.details__card:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-md);
+}
+
+.details__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.details__card-num {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-gold-deep);
+  letter-spacing: 0.05em;
+}
+
+.details__card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-red);
+  flex-shrink: 0;
+}
+
+.details__card-eye {
+  font-size: 0.65rem;
+  color: var(--accent-gold-deep);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  flex: 1;
+  text-align: center;
+}
+
+.details__card-heading {
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.details__card-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* --- Action Strip --- */
+.details__action-bar {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.details__venue-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-primary);
+}
+
+.details__venue-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.details__pin-icon {
+  color: var(--accent-red);
+  flex-shrink: 0;
+}
+
+.details__venue-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.details__btns {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.details__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 999px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.details__btn--maps {
+  background-color: var(--accent-red);
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 10px rgba(184, 32, 45, 0.25);
+}
+
+.details__btn--maps:hover {
+  background-color: var(--accent-vermilion);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(184, 32, 45, 0.35);
+}
+
+.details__btn--copy {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+.details__btn--copy:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+/* --- Breakpoints --- */
+@media (max-width: 960px) {
+  .details__grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .details__action-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .details__btns {
+    width: 100%;
+  }
+
+  .details__btn {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .details__btns {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  .details__btn {
+    width: 100%;
+    min-height: 46px;
+  }
+}
