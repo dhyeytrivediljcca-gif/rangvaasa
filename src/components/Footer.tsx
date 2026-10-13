@@ -99,6 +99,15 @@ const Footer: React.FC = () => {
                   Grab Your Pass →
                 </button>
               </li>
+              <li>
+                <button
+                  type="button"
+                  className="footer__nav-link"
+                  onClick={() => handleScrollTo('stall-registration')}
+                >
+                  Register Your Stall
+                </button>
+              </li>
             </ul>
           </div>
 

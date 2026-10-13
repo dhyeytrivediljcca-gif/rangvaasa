@@ -9,6 +9,7 @@ const desktopNavLinks = [
   { index: '01', label: 'Experience', href: '#experience' },
   { index: '02', label: 'The Art Adda', href: '#art-adda' },
   { index: '03', label: 'Details', href: '#details' },
+  { index: '05', label: 'Stall Reg.', href: '#stall-registration' },
 ];
 
 const mobileNavLinks = [
@@ -16,6 +17,7 @@ const mobileNavLinks = [
   { index: '02', label: 'The Art Adda', href: '#art-adda' },
   { index: '03', label: 'Details', href: '#details' },
   { index: '04', label: 'Get Your Pass', href: '#pass' },
+  { index: '05', label: 'Stall Registration', href: '#stall-registration' },
 ];
 
 const Navbar: React.FC = () => {

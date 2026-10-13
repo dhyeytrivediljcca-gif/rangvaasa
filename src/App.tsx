@@ -8,6 +8,7 @@ import Experience from './components/Experience';
 import ArtAdda from './components/ArtAdda';
 import EventDetails from './components/EventDetails';
 import PassGenerator from './components/PassGenerator';
+import StallRegistration from './components/StallRegistration';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -24,6 +25,7 @@ const App: React.FC = () => {
           <ArtAdda />
           <EventDetails />
           <PassGenerator />
+          <StallRegistration />
         </main>
         <Footer />
       </div>
