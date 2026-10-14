@@ -28,9 +28,6 @@ const DEPARTMENTS = ['BBA', 'BCA'] as const;
 const SEMESTERS = ['Semester 1', 'Semester 3', 'Semester 5', 'Semester 7'] as const;
 
 /* ---- Helpers ---- */
-/** Strip semester label → numeric digit only, e.g. "Semester 5" → "5" */
-const semesterNum = (sem: string) => sem.replace(/[^0-9]/g, '');
-
 /** Safe filename segment — keeps alphanumeric, hyphens, underscores */
 const safeStr = (s: string) => s.replace(/[^a-zA-Z0-9\-_]/g, '');
 
@@ -42,22 +39,6 @@ const buildFilename = (rollNo: string, ext: 'png' | 'pdf'): string => {
   const safePart = safeStr(rollNo.trim()) || 'Pass';
   return `Rangvaasa-2026-${safePart}.${ext}`;
 };
-
-/* ---- Wait for all <img> inside an element to be fully decoded ---- */
-async function waitForImages(el: HTMLElement): Promise<void> {
-  const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
-  await Promise.all(
-    imgs.map(
-      (img) =>
-        img.complete
-          ? Promise.resolve()
-          : new Promise<void>((res) => {
-              img.addEventListener('load', () => res(), { once: true });
-              img.addEventListener('error', () => res(), { once: true });
-            })
-    )
-  );
-}
 
 /* ================================================================
    DigitalPassCard – the visual ticket

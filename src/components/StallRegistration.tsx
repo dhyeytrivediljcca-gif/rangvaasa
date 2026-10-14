@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Store, CheckCircle2, Loader2, Info } from 'lucide-react';
+import { AlertCircle, Store, CheckCircle2, Loader2 } from 'lucide-react';
 import MagneticButton from './MagneticButton';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import './StallRegistration.css';

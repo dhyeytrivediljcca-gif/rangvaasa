@@ -167,7 +167,12 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onExit }) => 
               role="alert"
             >
               <AlertCircle size={16} />
-              <span>{errorMessage}</span>
+              <span>
+                {errorMessage}
+                {attemptsRemaining !== null && attemptsRemaining > 0 && (
+                  ` (${attemptsRemaining} attempt${attemptsRemaining === 1 ? '' : 's'} remaining)`
+                )}
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
