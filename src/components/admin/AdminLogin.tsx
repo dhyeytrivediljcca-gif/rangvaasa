@@ -97,7 +97,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onExit }) => 
         }
       }
     } catch (err) {
-      setErrorMessage('Unable to connect to server. Please try again later.');
+      setErrorMessage(
+        'Unable to connect to backend server. Please verify that the Vite dev server (npm run dev) is running on port 5173.'
+      );
     } finally {
       setLoading(false);
     }

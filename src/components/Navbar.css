@@ -432,9 +432,122 @@
   }
 
   .navbar__theme-toggle,
+  .navbar__music-toggle,
   .navbar__mobile-btn {
     width: 38px;
     height: 38px;
     min-width: 38px;
   }
 }
+
+/* ==============================================================================
+   Navbar Music Toggle Styling
+   ============================================================================== */
+.navbar__music-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  transition: all 0.22s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.navbar__music-toggle:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold-deep);
+  transform: scale(1.05);
+}
+
+.navbar__music-toggle--playing {
+  border-color: rgba(243, 184, 68, 0.6);
+  color: var(--accent-red);
+  background: rgba(243, 184, 68, 0.12);
+  box-shadow: 0 0 12px rgba(243, 184, 68, 0.3);
+}
+
+.navbar__music-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 14px;
+}
+
+.navbar__bar {
+  width: 2.5px;
+  background: var(--accent-red);
+  border-radius: 1px;
+}
+
+.navbar__bar.bar-1 {
+  height: 6px;
+  animation: navMusicBounce 0.6s ease-in-out infinite alternate;
+}
+
+.navbar__bar.bar-2 {
+  height: 13px;
+  animation: navMusicBounce 0.9s ease-in-out infinite alternate 0.15s;
+}
+
+.navbar__bar.bar-3 {
+  height: 8px;
+  animation: navMusicBounce 0.75s ease-in-out infinite alternate 0.3s;
+}
+
+@keyframes navMusicBounce {
+  0% { height: 3px; }
+  50% { height: 13px; }
+  100% { height: 6px; }
+}
+
+/* Mobile Drawer Music Row */
+.navbar__drawer-music-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(243, 184, 68, 0.08);
+  border: 1px solid rgba(243, 184, 68, 0.2);
+  border-radius: 12px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.navbar__drawer-music-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.navbar__drawer-music-icon {
+  color: var(--accent-gold);
+}
+
+.navbar__drawer-music-btn {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar__drawer-music-btn.active {
+  background: linear-gradient(135deg, var(--accent-red), var(--accent-vermilion));
+  color: #FFFDF8;
+  border-color: var(--accent-gold);
+  box-shadow: 0 2px 8px rgba(184, 32, 45, 0.3);
+}
+
