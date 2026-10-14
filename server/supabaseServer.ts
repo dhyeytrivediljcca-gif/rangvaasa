@@ -42,30 +42,42 @@ const supabaseUrl =
   process.env.SUPABASE_URL ||
   localEnv.SUPABASE_URL;
 
-// Secret Service Role Key: used strictly server-side to read registrations for authorized admin
+// Secret Service Role Key (if available) or fallback to anon/publishable key
 const serviceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   localEnv.SUPABASE_SERVICE_ROLE_KEY;
+
+const effectiveKey =
+  (serviceRoleKey &&
+  !serviceRoleKey.includes('your-secret-service-role-key') &&
+  serviceRoleKey.length > 20
+    ? serviceRoleKey
+    : null) ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  localEnv.VITE_SUPABASE_ANON_KEY ||
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  localEnv.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  localEnv.SUPABASE_ANON_KEY;
 
 let serverClient: SupabaseClient | null = null;
 
 if (
   supabaseUrl &&
-  serviceRoleKey &&
-  typeof serviceRoleKey === 'string' &&
-  !serviceRoleKey.includes('your-secret-service-role-key') &&
-  serviceRoleKey.length > 20
+  effectiveKey &&
+  typeof effectiveKey === 'string' &&
+  effectiveKey.length > 20
 ) {
   try {
-    serverClient = createClient(supabaseUrl, serviceRoleKey, {
+    serverClient = createClient(supabaseUrl, effectiveKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
       },
     });
-    console.log('[Supabase Server] Initialized with Service Role authorization.');
+    console.log('[Supabase Server] Initialized client for live backend database queries.');
   } catch (err) {
-    console.error('[Supabase Server] Failed to initialize admin client:', err);
+    console.error('[Supabase Server] Failed to initialize client:', err);
   }
 }
 

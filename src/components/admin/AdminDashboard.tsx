@@ -181,7 +181,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     []
   );
 
-  // Fetch all dashboard data (Server first, seamless Supabase fallback for Vercel)
+  // Fetch all dashboard data (Primary: LIVE Supabase database, Fallback: server endpoints)
   const fetchData = useCallback(
     async (isManualRefresh = false) => {
       if (isManualRefresh) setRefreshing(true);
@@ -192,37 +192,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         let loadedStudents: StudentRecord[] | null = null;
         let loadedStalls: StallRecord[] | null = null;
 
-        // 1. Try server endpoints first (active Vite server or Vercel serverless)
-        try {
-          const [resOverview, resStudents, resStalls] = await Promise.all([
-            fetch('/api/admin/overview', { headers: authHeaders }),
-            fetch('/api/admin/students', { headers: authHeaders }),
-            fetch('/api/admin/stalls', { headers: authHeaders }),
-          ]);
-
-          if (
-            resOverview.status === 401 ||
-            resStudents.status === 401 ||
-            resStalls.status === 401
-          ) {
-            onLogout();
-            return;
-          }
-
-          if (resOverview.ok && resStudents.ok && resStalls.ok) {
-            loadedOverview = await resOverview.json();
-            const sData = await resStudents.json();
-            const stData = await resStalls.json();
-            loadedStudents = sData.students || [];
-            loadedStalls = stData.stalls || [];
-          }
-        } catch {
-          // Server offline or static Vercel deployment - fall through to Supabase
-        }
-
-        // 2. Direct Supabase Fallback (ensures Vercel deployment works seamlessly)
-        if (!loadedOverview || !loadedStudents || !loadedStalls) {
-          if (isSupabaseConfigured && supabase) {
+        // 1. Primary: Direct LIVE Supabase Query (Real-time live database connection)
+        if (isSupabaseConfigured && supabase) {
+          try {
             const [sbStudents, sbStalls] = await Promise.all([
               supabase
                 .from('student_registrations')
@@ -234,48 +206,89 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 .order('created_at', { ascending: false }),
             ]);
 
-            loadedStudents = (sbStudents.data || []).map((row: any) => ({
-              id: String(row.id),
-              rollNo: String(row.roll_number || ''),
-              name: String(row.full_name || ''),
-              department: (row.department === 'BBA' || row.department === 'BCA'
-                ? row.department
-                : 'BBA') as 'BBA' | 'BCA',
-              semester: String(row.semester || ''),
-              passCode: String(row.pass_code || ''),
-              createdAt: row.created_at || new Date().toISOString(),
-            }));
+            if (sbStudents.data) {
+              loadedStudents = sbStudents.data.map((row: any) => ({
+                id: String(row.id),
+                rollNo: String(row.roll_number || ''),
+                name: String(row.full_name || ''),
+                department: (row.department === 'BBA' || row.department === 'BCA'
+                  ? row.department
+                  : 'BBA') as 'BBA' | 'BCA',
+                semester: String(row.semester || ''),
+                passCode: String(row.pass_code || ''),
+                createdAt: row.created_at || new Date().toISOString(),
+              }));
+            }
 
-            loadedStalls = (sbStalls.data || []).map((row: any) => ({
-              id: String(row.id),
-              registration_category: (row.registration_category || 'BBA') as
-                | 'BBA'
-                | 'BCA'
-                | 'Others',
-              stall_name: String(row.stall_name || ''),
-              owner_full_name: String(row.owner_full_name || ''),
-              stall_type: (row.stall_type || 'Food') as
-                | 'Food'
-                | 'Art'
-                | 'Beverages'
-                | 'Other',
-              createdAt: row.created_at || new Date().toISOString(),
-            }));
+            if (sbStalls.data) {
+              loadedStalls = sbStalls.data.map((row: any) => ({
+                id: String(row.id),
+                registration_category: (row.registration_category || 'BBA') as
+                  | 'BBA'
+                  | 'BCA'
+                  | 'Others',
+                stall_name: String(row.stall_name || ''),
+                owner_full_name: String(row.owner_full_name || ''),
+                stall_type: (row.stall_type || 'Food') as
+                  | 'Food'
+                  | 'Art'
+                  | 'Beverages'
+                  | 'Other',
+                createdAt: row.created_at || new Date().toISOString(),
+              }));
+            }
 
-            loadedOverview = computeMetricsFromRecords(
-              loadedStudents,
-              loadedStalls
-            );
-          } else {
-            throw new Error(
-              'No backend server reachable and Supabase is not configured. Please define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel settings.'
+            if (loadedStudents && loadedStalls) {
+              loadedOverview = computeMetricsFromRecords(
+                loadedStudents,
+                loadedStalls
+              );
+            }
+          } catch (sbErr) {
+            console.warn(
+              '[AdminDashboard] Supabase live query failed, trying server fallback:',
+              sbErr
             );
           }
         }
 
-        setMetrics(loadedOverview);
-        setStudents(loadedStudents);
-        setStalls(loadedStalls);
+        // 2. Secondary fallback: Server endpoints (used if Supabase direct query fails)
+        if (!loadedOverview || !loadedStudents || !loadedStalls) {
+          try {
+            const [resOverview, resStudents, resStalls] = await Promise.all([
+              fetch('/api/admin/overview', { headers: authHeaders }),
+              fetch('/api/admin/students', { headers: authHeaders }),
+              fetch('/api/admin/stalls', { headers: authHeaders }),
+            ]);
+
+            if (
+              resOverview.status === 401 ||
+              resStudents.status === 401 ||
+              resStalls.status === 401
+            ) {
+              onLogout();
+              return;
+            }
+
+            if (resOverview.ok && resStudents.ok && resStalls.ok) {
+              loadedOverview = await resOverview.json();
+              const sData = await resStudents.json();
+              const stData = await resStalls.json();
+              loadedStudents = sData.students || [];
+              loadedStalls = stData.stalls || [];
+            }
+          } catch (serverErr) {
+            console.warn('[AdminDashboard] Server endpoint fallback failed:', serverErr);
+          }
+        }
+
+        if (loadedOverview && loadedStudents && loadedStalls) {
+          setMetrics(loadedOverview);
+          setStudents(loadedStudents);
+          setStalls(loadedStalls);
+        } else if (!metrics) {
+          throw new Error('Unable to connect to database or server. Please verify database connection.');
+        }
       } catch (err: any) {
         setError(err.message || 'Error loading dashboard data.');
       } finally {
@@ -283,11 +296,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         if (isManualRefresh) setRefreshing(false);
       }
     },
-    [authHeaders, onLogout, computeMetricsFromRecords]
+    [authHeaders, onLogout, computeMetricsFromRecords, metrics]
   );
 
+  // Live real-time subscription & continuous polling sync
   useEffect(() => {
     fetchData();
+
+    if (isSupabaseConfigured && supabase) {
+      // 1. Supabase Postgres Realtime WebSocket Channel
+      const channel = supabase
+        .channel('admin-live-stream')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'student_registrations' },
+          () => {
+            fetchData(false);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'stall_registrations' },
+          () => {
+            fetchData(false);
+          }
+        )
+        .subscribe();
+
+      // 2. Live 4-second auto-sync poll (ensures immediate updates even if WebSockets are closed)
+      const intervalId = window.setInterval(() => {
+        fetchData(false);
+      }, 4000);
+
+      return () => {
+        if (supabase) {
+          supabase.removeChannel(channel);
+        }
+        window.clearInterval(intervalId);
+      };
+    }
   }, [fetchData]);
 
   // Format dates

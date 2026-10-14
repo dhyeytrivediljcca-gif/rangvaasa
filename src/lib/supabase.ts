@@ -3,19 +3,24 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 /**
  * Centralized Supabase Client for RANGVAASA 2026
  *
- * Reads credentials strictly from Vite environment variables:
- * - VITE_SUPABASE_URL
- * - VITE_SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_ANON_KEY)
- *
- * Security Note:
- * - Only use the public/publishable anon key here.
- * - Never use the service_role secret key in frontend client code.
+ * Reads credentials from environment variables, supporting:
+ * - VITE_SUPABASE_URL / SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL
+ * - VITE_SUPABASE_ANON_KEY / VITE_SUPABASE_PUBLISHABLE_KEY / SUPABASE_ANON_KEY / SUPABASE_KEY
  */
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
+const env = import.meta.env;
+
+const supabaseUrl: string | undefined =
+  env.VITE_SUPABASE_URL ||
+  (env as any).SUPABASE_URL ||
+  (env as any).NEXT_PUBLIC_SUPABASE_URL;
+
+const supabaseKey: string | undefined =
+  env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  env.VITE_SUPABASE_ANON_KEY ||
+  (env as any).SUPABASE_ANON_KEY ||
+  (env as any).SUPABASE_KEY ||
+  (env as any).NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /**
  * Validates whether valid, non-placeholder Supabase credentials exist.
@@ -34,24 +39,28 @@ export const isSupabaseConfigured: boolean = Boolean(
 // Singleton Supabase Client
 let supabaseInstance: SupabaseClient | null = null;
 
-if (isSupabaseConfigured) {
-  supabaseInstance = createClient(supabaseUrl as string, supabaseKey as string, {
+if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
+  supabaseInstance = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
     },
   });
 }
 
 /**
  * Returns the centralized Supabase client instance.
- * Throws a clear configuration error if environment variables are missing or unconfigured.
  */
 export function getSupabase(): SupabaseClient {
   if (!supabaseInstance) {
     throw new Error(
-      '[Supabase] Client is not configured. Please define valid VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env.local file.'
+      '[Supabase] Client is not configured. Please define valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.'
     );
   }
   return supabaseInstance;
