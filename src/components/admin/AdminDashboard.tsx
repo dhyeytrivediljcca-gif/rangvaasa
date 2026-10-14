@@ -121,39 +121,161 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     [token]
   );
 
-  // Fetch all dashboard data
+  // Dynamic metrics calculator for direct Supabase fallback (Vercel & offline)
+  const computeMetricsFromRecords = useCallback(
+    (studentList: StudentRecord[], stallList: StallRecord[]): OverviewMetrics => {
+      const studentByDept = { BBA: 0, BCA: 0 };
+      const studentBySemester: Record<string, number> = {};
+      studentList.forEach((s) => {
+        if (s.department === 'BBA' || s.department === 'BCA') {
+          studentByDept[s.department] = (studentByDept[s.department] || 0) + 1;
+        }
+        studentBySemester[s.semester] = (studentBySemester[s.semester] || 0) + 1;
+      });
+
+      const stallByCategory = { BBA: 0, BCA: 0, Others: 0 };
+      const stallByType = { Food: 0, Art: 0, Beverages: 0, Other: 0 };
+      stallList.forEach((s) => {
+        if (s.registration_category in stallByCategory) {
+          stallByCategory[s.registration_category as keyof typeof stallByCategory]++;
+        }
+        if (s.stall_type in stallByType) {
+          stallByType[s.stall_type as keyof typeof stallByType]++;
+        }
+      });
+
+      const recent: OverviewMetrics['recentRegistrations'] = [
+        ...studentList.map((s) => ({
+          id: s.id,
+          type: 'student' as const,
+          title: `${s.name} (${s.rollNo})`,
+          subtitle: `${s.department} · ${s.semester}`,
+          badge: s.department,
+          createdAt: s.createdAt,
+        })),
+        ...stallList.map((s) => ({
+          id: s.id,
+          type: 'stall' as const,
+          title: s.stall_name,
+          subtitle: `${s.stall_type} Stall · ${s.owner_full_name}`,
+          badge: s.stall_type,
+          createdAt: s.createdAt,
+        })),
+      ]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 10);
+
+      return {
+        totalStudents: studentList.length,
+        totalStalls: stallList.length,
+        studentByDept,
+        studentBySemester,
+        stallByCategory,
+        stallByType,
+        recentRegistrations: recent,
+      };
+    },
+    []
+  );
+
+  // Fetch all dashboard data (Server first, seamless Supabase fallback for Vercel)
   const fetchData = useCallback(
     async (isManualRefresh = false) => {
       if (isManualRefresh) setRefreshing(true);
       setError(null);
 
       try {
-        const [resOverview, resStudents, resStalls] = await Promise.all([
-          fetch('/api/admin/overview', { headers: authHeaders }),
-          fetch('/api/admin/students', { headers: authHeaders }),
-          fetch('/api/admin/stalls', { headers: authHeaders }),
-        ]);
+        let loadedOverview: OverviewMetrics | null = null;
+        let loadedStudents: StudentRecord[] | null = null;
+        let loadedStalls: StallRecord[] | null = null;
 
-        if (
-          resOverview.status === 401 ||
-          resStudents.status === 401 ||
-          resStalls.status === 401
-        ) {
-          onLogout();
-          return;
+        // 1. Try server endpoints first (active Vite server or Vercel serverless)
+        try {
+          const [resOverview, resStudents, resStalls] = await Promise.all([
+            fetch('/api/admin/overview', { headers: authHeaders }),
+            fetch('/api/admin/students', { headers: authHeaders }),
+            fetch('/api/admin/stalls', { headers: authHeaders }),
+          ]);
+
+          if (
+            resOverview.status === 401 ||
+            resStudents.status === 401 ||
+            resStalls.status === 401
+          ) {
+            onLogout();
+            return;
+          }
+
+          if (resOverview.ok && resStudents.ok && resStalls.ok) {
+            loadedOverview = await resOverview.json();
+            const sData = await resStudents.json();
+            const stData = await resStalls.json();
+            loadedStudents = sData.students || [];
+            loadedStalls = stData.stalls || [];
+          }
+        } catch {
+          // Server offline or static Vercel deployment - fall through to Supabase
         }
 
-        if (!resOverview.ok || !resStudents.ok || !resStalls.ok) {
-          throw new Error('Failed to fetch data from admin server.');
+        // 2. Direct Supabase Fallback (ensures Vercel deployment works seamlessly)
+        if (!loadedOverview || !loadedStudents || !loadedStalls) {
+          if (isSupabaseConfigured && supabase) {
+            const [sbStudents, sbStalls] = await Promise.all([
+              supabase
+                .from('student_registrations')
+                .select('*')
+                .order('created_at', { ascending: false }),
+              supabase
+                .from('stall_registrations')
+                .select('*')
+                .order('created_at', { ascending: false }),
+            ]);
+
+            loadedStudents = (sbStudents.data || []).map((row: any) => ({
+              id: String(row.id),
+              rollNo: String(row.roll_number || ''),
+              name: String(row.full_name || ''),
+              department: (row.department === 'BBA' || row.department === 'BCA'
+                ? row.department
+                : 'BBA') as 'BBA' | 'BCA',
+              semester: String(row.semester || ''),
+              passCode: String(row.pass_code || ''),
+              createdAt: row.created_at || new Date().toISOString(),
+            }));
+
+            loadedStalls = (sbStalls.data || []).map((row: any) => ({
+              id: String(row.id),
+              registration_category: (row.registration_category || 'BBA') as
+                | 'BBA'
+                | 'BCA'
+                | 'Others',
+              stall_name: String(row.stall_name || ''),
+              owner_full_name: String(row.owner_full_name || ''),
+              stall_type: (row.stall_type || 'Food') as
+                | 'Food'
+                | 'Art'
+                | 'Beverages'
+                | 'Other',
+              createdAt: row.created_at || new Date().toISOString(),
+            }));
+
+            loadedOverview = computeMetricsFromRecords(
+              loadedStudents,
+              loadedStalls
+            );
+          } else {
+            throw new Error(
+              'No backend server reachable and Supabase is not configured. Please define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel settings.'
+            );
+          }
         }
 
-        const dataOverview = await resOverview.json();
-        const dataStudents = await resStudents.json();
-        const dataStalls = await resStalls.json();
-
-        setMetrics(dataOverview);
-        setStudents(dataStudents.students || []);
-        setStalls(dataStalls.stalls || []);
+        setMetrics(loadedOverview);
+        setStudents(loadedStudents);
+        setStalls(loadedStalls);
       } catch (err: any) {
         setError(err.message || 'Error loading dashboard data.');
       } finally {
@@ -161,7 +283,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         if (isManualRefresh) setRefreshing(false);
       }
     },
-    [authHeaders, onLogout]
+    [authHeaders, onLogout, computeMetricsFromRecords]
   );
 
   useEffect(() => {

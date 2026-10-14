@@ -28,7 +28,7 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 // Primary audio path
 const AUDIO_TRACK_URL =
-  '/audio/non-stop-mandli-garba-2025-latest-gujarati-navratri-garba-sangeet-music_Uv21Son8.mp3';
+  '/audio/non-stop-mandli-garba-2025-latest-gujarati-navratri-garba-sangeet-music_mZBJVAYG.mp3';
 
 interface MusicProviderProps {
   children: ReactNode;

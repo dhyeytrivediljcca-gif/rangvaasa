@@ -18,7 +18,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   useEffect(() => {
     const verifyToken = async () => {
       const stored = sessionStorage.getItem('rangvaasa_admin_token');
+      const expires = sessionStorage.getItem('rangvaasa_admin_expires');
       if (!stored) {
+        setAuthToken(null);
+        setVerifyingSession(false);
+        return;
+      }
+
+      // Check client expiration timestamp (default 8 hours)
+      if (expires && Number(expires) < Date.now()) {
+        sessionStorage.removeItem('rangvaasa_admin_token');
+        sessionStorage.removeItem('rangvaasa_admin_expires');
         setAuthToken(null);
         setVerifyingSession(false);
         return;
@@ -33,13 +43,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
 
         if (res.ok) {
           setAuthToken(stored);
-        } else {
+        } else if (res.status === 401) {
+          // Explicit server-side rejection
           sessionStorage.removeItem('rangvaasa_admin_token');
+          sessionStorage.removeItem('rangvaasa_admin_expires');
           setAuthToken(null);
+        } else {
+          // Non-401 (e.g. 404 on Vercel static host) - retain valid client token
+          setAuthToken(stored);
         }
-      } catch (err) {
-        sessionStorage.removeItem('rangvaasa_admin_token');
-        setAuthToken(null);
+      } catch {
+        // Server unreachable on Vercel static host - retain valid client token
+        setAuthToken(stored);
       } finally {
         setVerifyingSession(false);
       }

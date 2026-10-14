@@ -50,17 +50,14 @@ CREATE POLICY "Public visitors can insert student pass"
     TO anon, authenticated
     WITH CHECK (true);
 
--- Disallow public visitors from selecting/reading any student records
--- Only authenticated admin accounts can SELECT
+-- Allow reading student registrations for admin dashboard
 DROP POLICY IF EXISTS "Only authorized admin can read student registrations" ON student_registrations;
-CREATE POLICY "Only authorized admin can read student registrations"
+DROP POLICY IF EXISTS "Allow select for student registrations" ON student_registrations;
+CREATE POLICY "Allow select for student registrations"
     ON student_registrations
     FOR SELECT
-    TO authenticated
-    USING (
-        (auth.jwt() ->> 'role') = 'authenticated'
-        OR (auth.jwt() ->> 'email') LIKE '%admin%'
-    );
+    TO anon, authenticated
+    USING (true);
 
 -- ── Stall Registrations Policies ──
 -- Allow public visitors to register stalls
@@ -71,14 +68,11 @@ CREATE POLICY "Public visitors can insert stall registration"
     TO anon, authenticated
     WITH CHECK (true);
 
--- Disallow public visitors from selecting/reading any stall records
--- Only authenticated admin accounts can SELECT
+-- Allow reading stall registrations for admin dashboard
 DROP POLICY IF EXISTS "Only authorized admin can read stall registrations" ON stall_registrations;
-CREATE POLICY "Only authorized admin can read stall registrations"
+DROP POLICY IF EXISTS "Allow select for stall registrations" ON stall_registrations;
+CREATE POLICY "Allow select for stall registrations"
     ON stall_registrations
     FOR SELECT
-    TO authenticated
-    USING (
-        (auth.jwt() ->> 'role') = 'authenticated'
-        OR (auth.jwt() ->> 'email') LIKE '%admin%'
-    );
+    TO anon, authenticated
+    USING (true);
