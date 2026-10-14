@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Menu, X, ArrowUpRight, VolumeX, Music } from 'lucide-react';
+import { Sun, Moon, Menu, X, ArrowUpRight, VolumeX } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useMusic } from '../contexts/MusicContext';
 import MagneticButton from './MagneticButton';
@@ -116,7 +116,7 @@ const Navbar: React.FC = () => {
             {/* Music ON / OFF Toggle */}
             <button
               type="button"
-              className={`navbar__music-toggle ${isPlaying ? 'navbar__music-toggle--playing' : ''}`}
+              className={`navbar__music-toggle ${isPlaying ? 'navbar__music-toggle--playing' : 'navbar__music-toggle--muted'}`}
               onClick={togglePlay}
               aria-label={isPlaying ? 'Turn Garba music off' : 'Turn Garba music on'}
               title={isPlaying ? 'Garba Music: ON (Click to turn off)' : 'Garba Music: OFF (Click to turn on)'}
@@ -215,7 +215,15 @@ const Navbar: React.FC = () => {
                 ))}
                 <div className="navbar__drawer-music-row">
                   <div className="navbar__drawer-music-info">
-                    <Music size={16} className="navbar__drawer-music-icon" />
+                    {isPlaying ? (
+                      <div className="navbar__music-bars" aria-hidden="true">
+                        <span className="navbar__bar bar-1" />
+                        <span className="navbar__bar bar-2" />
+                        <span className="navbar__bar bar-3" />
+                      </div>
+                    ) : (
+                      <VolumeX size={17} className="navbar__drawer-music-icon" />
+                    )}
                     <span>Garba Music</span>
                   </div>
                   <button
@@ -223,7 +231,7 @@ const Navbar: React.FC = () => {
                     className={`navbar__drawer-music-btn ${isPlaying ? 'active' : ''}`}
                     onClick={togglePlay}
                   >
-                    {isPlaying ? 'MUSIC ON' : 'MUSIC OFF'}
+                    {isPlaying ? 'PLAYING' : 'MUTED · TAP TO PLAY'}
                   </button>
                 </div>
 

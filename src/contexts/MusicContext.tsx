@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 interface MusicContextType {
   isPlaying: boolean;
   isMuted: boolean;
+  isMobile: boolean;
   volume: number;
   isRevealed: boolean;
   autoplayBlocked: boolean;
@@ -26,17 +27,28 @@ interface MusicContextType {
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
-// Primary audio path
+// Primary audio path (new full 4.9MB track)
 const AUDIO_TRACK_URL =
   '/audio/non-stop-mandli-garba-2025-latest-gujarati-navratri-garba-sangeet-music_mZBJVAYG.mp3';
+
+const checkIsMobile = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.innerWidth <= 768 ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  );
+};
 
 interface MusicProviderProps {
   children: ReactNode;
 }
 
 export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
+  const [isMobile, setIsMobile] = useState<boolean>(checkIsMobile);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(() => checkIsMobile());
   const [volume, setVolumeState] = useState<number>(0.75);
   const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
@@ -45,6 +57,15 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const userManuallyStoppedRef = useRef<boolean>(false);
   const targetVolumeRef = useRef<number>(0.75);
   const fadeIntervalRef = useRef<number | null>(null);
+
+  // Resize listener to track mobile screen status
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(checkIsMobile());
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Smooth audio volume fade in
   const startSmoothFadeIn = useCallback((targetVol: number) => {
@@ -73,56 +94,69 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     }, 80);
   }, []);
 
-  // Internal helper to start playing
-  const internalPlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  // Helper to start playback
+  const internalPlay = useCallback(
+    (forceUnmute = false) => {
+      const audio = audioRef.current;
+      if (!audio) return;
 
-    audio
-      .play()
-      .then(() => {
-        setIsPlaying(true);
-        setAutoplayBlocked(false);
-        startSmoothFadeIn(targetVolumeRef.current);
-      })
-      .catch((err) => {
-        console.log('[MusicPlayer] Browser autoplay policy prevented instant audio:', err);
-        setAutoplayBlocked(true);
+      const mobile = checkIsMobile();
 
-        // Fallback: unlock audio on ANY user gesture anywhere on window/document
-        const unlockAudioOnGesture = () => {
-          if (!userManuallyStoppedRef.current && audioRef.current) {
-            audioRef.current
-              .play()
-              .then(() => {
-                setIsPlaying(true);
-                setAutoplayBlocked(false);
-                startSmoothFadeIn(targetVolumeRef.current);
-              })
-              .catch(console.warn);
+      if (forceUnmute || !mobile) {
+        audio.muted = false;
+        setIsMuted(false);
+      } else {
+        // Mobile starts MUTED by default
+        audio.muted = true;
+        setIsMuted(true);
+      }
+
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setAutoplayBlocked(false);
+          if (!audio.muted) {
+            startSmoothFadeIn(targetVolumeRef.current);
           }
-          cleanupGestureListeners();
-        };
+        })
+        .catch(() => {
+          setAutoplayBlocked(true);
 
-        const cleanupGestureListeners = () => {
-          window.removeEventListener('click', unlockAudioOnGesture);
-          window.removeEventListener('pointerdown', unlockAudioOnGesture);
-          window.removeEventListener('touchstart', unlockAudioOnGesture);
-          window.removeEventListener('keydown', unlockAudioOnGesture);
-          window.removeEventListener('scroll', unlockAudioOnGesture);
-          window.removeEventListener('wheel', unlockAudioOnGesture);
-        };
+          // On mobile or blocked desktop, attach one-time unlock listener
+          const unlockOnGesture = () => {
+            if (!userManuallyStoppedRef.current && audioRef.current) {
+              const currentMob = checkIsMobile();
+              if (currentMob) {
+                audioRef.current.muted = true;
+                setIsMuted(true);
+              }
+              audioRef.current
+                .play()
+                .then(() => {
+                  setIsPlaying(true);
+                  setAutoplayBlocked(false);
+                })
+                .catch(() => null);
+            }
+            cleanup();
+          };
 
-        window.addEventListener('click', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('pointerdown', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('touchstart', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('keydown', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('scroll', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('wheel', unlockAudioOnGesture, { once: true, passive: true });
-      });
-  }, [startSmoothFadeIn]);
+          const cleanup = () => {
+            window.removeEventListener('click', unlockOnGesture);
+            window.removeEventListener('touchstart', unlockOnGesture);
+            window.removeEventListener('keydown', unlockOnGesture);
+          };
 
-  // Initialize audio and start playback by default when website is opened
+          window.addEventListener('click', unlockOnGesture, { once: true, passive: true });
+          window.addEventListener('touchstart', unlockOnGesture, { once: true, passive: true });
+          window.addEventListener('keydown', unlockOnGesture, { once: true, passive: true });
+        });
+    },
+    [startSmoothFadeIn]
+  );
+
+  // Initialize audio on mount
   useEffect(() => {
     const audio = new Audio();
     audio.src = AUDIO_TRACK_URL;
@@ -130,13 +164,23 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     audio.preload = 'auto';
     audio.volume = targetVolumeRef.current;
 
+    const mobile = checkIsMobile();
+    if (mobile) {
+      // Mobile device: by default mute!
+      audio.muted = true;
+      setIsMuted(true);
+    } else {
+      audio.muted = false;
+      setIsMuted(false);
+    }
+
     audio.onplay = () => setIsPlaying(true);
     audio.onpause = () => setIsPlaying(false);
 
     audioRef.current = audio;
 
-    // Start playing music by default when website opens!
-    internalPlay();
+    // Start playback by default (muted on mobile, audible on desktop)
+    internalPlay(false);
 
     return () => {
       if (fadeIntervalRef.current) {
@@ -155,24 +199,37 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
     userManuallyStoppedRef.current = true;
     audio.pause();
+    audio.muted = true;
     setIsPlaying(false);
+    setIsMuted(true);
     setAutoplayBlocked(false);
   }, []);
 
-  // Play music manually anytime
+  // Play and un-mute music manually
   const playMusic = useCallback(() => {
     userManuallyStoppedRef.current = false;
-    internalPlay();
+    const audio = audioRef.current;
+    if (audio) {
+      audio.muted = false;
+      setIsMuted(false);
+      audio.volume = targetVolumeRef.current;
+    }
+    internalPlay(true);
   }, [internalPlay]);
 
-  // Toggle play/stop anytime
+  // Seamless 1-tap toggle (plays & un-mutes if off, mutes & pauses if on)
   const togglePlay = useCallback(() => {
-    if (isPlaying) {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying && !isMuted) {
+      // Sound is actively playing -> Stop/Mute it
       stopMusic();
     } else {
+      // Muted or stopped -> Unmute and Play!
       playMusic();
     }
-  }, [isPlaying, stopMusic, playMusic]);
+  }, [isPlaying, isMuted, stopMusic, playMusic]);
 
   const toggleMute = useCallback(() => {
     const audio = audioRef.current;
@@ -181,7 +238,10 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     const nextMuted = !isMuted;
     audio.muted = nextMuted;
     setIsMuted(nextMuted);
-  }, [isMuted]);
+    if (!nextMuted && !isPlaying) {
+      playMusic();
+    }
+  }, [isMuted, isPlaying, playMusic]);
 
   const changeVolume = useCallback((newVol: number) => {
     const audio = audioRef.current;
@@ -198,19 +258,19 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Landing page reveal trigger (if not already playing and not manually stopped)
   const notifyReveal = useCallback(() => {
     setIsRevealed(true);
     if (!userManuallyStoppedRef.current && !isPlaying) {
-      internalPlay();
+      internalPlay(false);
     }
   }, [internalPlay, isPlaying]);
 
   return (
     <MusicContext.Provider
       value={{
-        isPlaying,
+        isPlaying: isPlaying && !isMuted,
         isMuted,
+        isMobile,
         volume,
         isRevealed,
         autoplayBlocked,

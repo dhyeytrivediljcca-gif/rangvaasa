@@ -471,6 +471,16 @@
   box-shadow: 0 0 12px rgba(243, 184, 68, 0.3);
 }
 
+.navbar__music-toggle--muted {
+  opacity: 0.85;
+}
+
+.navbar__music-toggle--muted:hover {
+  opacity: 1;
+  color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
 .navbar__music-bars {
   display: flex;
   align-items: flex-end;

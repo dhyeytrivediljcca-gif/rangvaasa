@@ -12,7 +12,6 @@ import PassGenerator from './components/PassGenerator';
 import StallRegistration from './components/StallRegistration';
 import Footer from './components/Footer';
 import { AdminPortal } from './components/admin/AdminPortal';
-import MusicPlayer from './components/MusicPlayer';
 import './App.css';
 
 interface MainWebsiteProps {
@@ -37,8 +36,6 @@ const MainWebsite: React.FC<MainWebsiteProps> = ({ onOpenAdmin }) => {
         <StallRegistration />
       </main>
       <Footer onOpenAdmin={onOpenAdmin} />
-      {/* Floating Music Player with ON/OFF and Volume Controls */}
-      <MusicPlayer />
     </>
   );
 };
