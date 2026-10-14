@@ -105,6 +105,29 @@ export const MusicPlayer: React.FC = () => {
           </div>
         </div>
 
+        {/* Quick Stop/Play Action Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePlay();
+          }}
+          className={`music-quick-toggle-btn ${isPlaying ? 'music-quick-toggle--stop' : 'music-quick-toggle--play'}`}
+          title={isPlaying ? 'Stop music' : 'Play music'}
+        >
+          {isPlaying ? (
+            <>
+              <Pause size={12} />
+              <span>STOP</span>
+            </>
+          ) : (
+            <>
+              <Play size={12} className="music-play-mini" />
+              <span>PLAY</span>
+            </>
+          )}
+        </button>
+
         {/* Controls Toggle (Expand Volume / Settings) */}
         <button
           type="button"

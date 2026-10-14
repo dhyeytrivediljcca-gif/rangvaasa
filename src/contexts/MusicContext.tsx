@@ -19,7 +19,7 @@ interface MusicContextType {
   notifyReveal: () => void;
   togglePlay: () => void;
   playMusic: () => void;
-  pauseMusic: () => void;
+  stopMusic: () => void;
   toggleMute: () => void;
   changeVolume: (vol: number) => void;
 }
@@ -42,49 +42,11 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const userOptedOutRef = useRef<boolean>(false);
+  const userManuallyStoppedRef = useRef<boolean>(false);
   const targetVolumeRef = useRef<number>(0.75);
   const fadeIntervalRef = useRef<number | null>(null);
 
-  // Initialize audio element once
-  useEffect(() => {
-    // Check saved user preference if any
-    const savedPref = localStorage.getItem('rangvaasa_music_enabled');
-    if (savedPref === 'false') {
-      userOptedOutRef.current = true;
-    }
-
-    const savedVolume = localStorage.getItem('rangvaasa_music_volume');
-    if (savedVolume !== null) {
-      const v = parseFloat(savedVolume);
-      if (!isNaN(v) && v >= 0 && v <= 1) {
-        targetVolumeRef.current = v;
-        setVolumeState(v);
-      }
-    }
-
-    const audio = new Audio();
-    audio.src = AUDIO_TRACK_URL;
-    audio.loop = true;
-    audio.preload = 'auto';
-    audio.volume = targetVolumeRef.current;
-
-    audio.onplay = () => setIsPlaying(true);
-    audio.onpause = () => setIsPlaying(false);
-
-    audioRef.current = audio;
-
-    return () => {
-      if (fadeIntervalRef.current) {
-        window.clearInterval(fadeIntervalRef.current);
-      }
-      audio.pause();
-      audio.src = '';
-      audioRef.current = null;
-    };
-  }, []);
-
-  // Smooth audio fade in
+  // Smooth audio volume fade in
   const startSmoothFadeIn = useCallback((targetVol: number) => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -111,32 +73,31 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     }, 80);
   }, []);
 
-  // Safe Play trigger with browser autoplay handling
-  const playMusic = useCallback(() => {
+  // Internal helper to start playing
+  const internalPlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    userOptedOutRef.current = false;
-    localStorage.setItem('rangvaasa_music_enabled', 'true');
 
     audio
       .play()
       .then(() => {
         setIsPlaying(true);
         setAutoplayBlocked(false);
+        startSmoothFadeIn(targetVolumeRef.current);
       })
       .catch((err) => {
-        console.log('[MusicPlayer] Play request prevented by browser policy:', err);
+        console.log('[MusicPlayer] Browser autoplay policy prevented instant audio:', err);
         setAutoplayBlocked(true);
 
-        // Attach one-time global listeners for user's next gesture
-        const handleGesture = () => {
-          if (!userOptedOutRef.current && audioRef.current) {
+        // Fallback: unlock audio on ANY user gesture anywhere on window/document
+        const unlockAudioOnGesture = () => {
+          if (!userManuallyStoppedRef.current && audioRef.current) {
             audioRef.current
               .play()
               .then(() => {
                 setIsPlaying(true);
                 setAutoplayBlocked(false);
+                startSmoothFadeIn(targetVolumeRef.current);
               })
               .catch(console.warn);
           }
@@ -144,37 +105,74 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
         };
 
         const cleanupGestureListeners = () => {
-          window.removeEventListener('click', handleGesture);
-          window.removeEventListener('touchstart', handleGesture);
-          window.removeEventListener('keydown', handleGesture);
-          window.removeEventListener('scroll', handleGesture);
+          window.removeEventListener('click', unlockAudioOnGesture);
+          window.removeEventListener('pointerdown', unlockAudioOnGesture);
+          window.removeEventListener('touchstart', unlockAudioOnGesture);
+          window.removeEventListener('keydown', unlockAudioOnGesture);
+          window.removeEventListener('scroll', unlockAudioOnGesture);
+          window.removeEventListener('wheel', unlockAudioOnGesture);
         };
 
-        window.addEventListener('click', handleGesture, { once: true, passive: true });
-        window.addEventListener('touchstart', handleGesture, { once: true, passive: true });
-        window.addEventListener('keydown', handleGesture, { once: true, passive: true });
-        window.addEventListener('scroll', handleGesture, { once: true, passive: true });
+        window.addEventListener('click', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('pointerdown', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('touchstart', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('keydown', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('scroll', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('wheel', unlockAudioOnGesture, { once: true, passive: true });
       });
-  }, []);
+  }, [startSmoothFadeIn]);
 
-  const pauseMusic = useCallback(() => {
+  // Initialize audio and start playback by default when website is opened
+  useEffect(() => {
+    const audio = new Audio();
+    audio.src = AUDIO_TRACK_URL;
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.volume = targetVolumeRef.current;
+
+    audio.onplay = () => setIsPlaying(true);
+    audio.onpause = () => setIsPlaying(false);
+
+    audioRef.current = audio;
+
+    // Start playing music by default when website opens!
+    internalPlay();
+
+    return () => {
+      if (fadeIntervalRef.current) {
+        window.clearInterval(fadeIntervalRef.current);
+      }
+      audio.pause();
+      audio.src = '';
+      audioRef.current = null;
+    };
+  }, [internalPlay]);
+
+  // Stop music manually anytime
+  const stopMusic = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    userOptedOutRef.current = true;
-    localStorage.setItem('rangvaasa_music_enabled', 'false');
+    userManuallyStoppedRef.current = true;
     audio.pause();
     setIsPlaying(false);
     setAutoplayBlocked(false);
   }, []);
 
+  // Play music manually anytime
+  const playMusic = useCallback(() => {
+    userManuallyStoppedRef.current = false;
+    internalPlay();
+  }, [internalPlay]);
+
+  // Toggle play/stop anytime
   const togglePlay = useCallback(() => {
     if (isPlaying) {
-      pauseMusic();
+      stopMusic();
     } else {
       playMusic();
     }
-  }, [isPlaying, playMusic, pauseMusic]);
+  }, [isPlaying, stopMusic, playMusic]);
 
   const toggleMute = useCallback(() => {
     const audio = audioRef.current;
@@ -190,7 +188,6 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     const clamped = Math.max(0, Math.min(1, newVol));
     targetVolumeRef.current = clamped;
     setVolumeState(clamped);
-    localStorage.setItem('rangvaasa_music_volume', clamped.toString());
 
     if (audio) {
       audio.volume = clamped;
@@ -201,48 +198,13 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Called when landing page reveals (after loader finishes)
+  // Landing page reveal trigger (if not already playing and not manually stopped)
   const notifyReveal = useCallback(() => {
     setIsRevealed(true);
-
-    // If user has not explicitly disabled music in past, start playing on reveal!
-    if (!userOptedOutRef.current && audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setAutoplayBlocked(false);
-          startSmoothFadeIn(targetVolumeRef.current);
-        })
-        .catch((err) => {
-          // Autoplay policy blocked; mark as blocked so gesture trigger takes over
-          console.log('[MusicPlayer] Reveal autoplay blocked by browser policy:', err);
-          setAutoplayBlocked(true);
-
-          const unlockOnGesture = () => {
-            if (!userOptedOutRef.current && audioRef.current) {
-              audioRef.current
-                .play()
-                .then(() => {
-                  setIsPlaying(true);
-                  setAutoplayBlocked(false);
-                  startSmoothFadeIn(targetVolumeRef.current);
-                })
-                .catch(console.warn);
-            }
-            window.removeEventListener('click', unlockOnGesture);
-            window.removeEventListener('touchstart', unlockOnGesture);
-            window.removeEventListener('keydown', unlockOnGesture);
-            window.removeEventListener('scroll', unlockOnGesture);
-          };
-
-          window.addEventListener('click', unlockOnGesture, { once: true, passive: true });
-          window.addEventListener('touchstart', unlockOnGesture, { once: true, passive: true });
-          window.addEventListener('keydown', unlockOnGesture, { once: true, passive: true });
-          window.addEventListener('scroll', unlockOnGesture, { once: true, passive: true });
-        });
+    if (!userManuallyStoppedRef.current && !isPlaying) {
+      internalPlay();
     }
-  }, [startSmoothFadeIn]);
+  }, [internalPlay, isPlaying]);
 
   return (
     <MusicContext.Provider
@@ -257,7 +219,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
         notifyReveal,
         togglePlay,
         playMusic,
-        pauseMusic,
+        stopMusic,
         toggleMute,
         changeVolume,
       }}
