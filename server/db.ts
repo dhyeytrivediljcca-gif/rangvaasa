@@ -73,10 +73,24 @@ function writeDb(data: DatabaseSchema): void {
  */
 export async function getAllStudents(): Promise<StudentRegistration[]> {
   const sbStudents = await fetchStudentsFromSupabase();
-  if (sbStudents !== null) {
-    return sbStudents;
+  const local = readDb().students;
+
+  if (sbStudents !== null && sbStudents.length > 0) {
+    const sbIds = new Set(
+      sbStudents.map((s) => `${s.rollNo.toUpperCase()}_${s.department}`)
+    );
+    const uniqueLocal = local.filter(
+      (l) => !sbIds.has(`${l.rollNo.toUpperCase()}_${l.department}`)
+    );
+    return [...sbStudents, ...uniqueLocal];
   }
-  return readDb().students;
+
+  // If Supabase returned empty (e.g. RLS blocking select) or null, return local records
+  if (local.length > 0) {
+    return local;
+  }
+
+  return sbStudents !== null ? sbStudents : local;
 }
 
 export function addStudent(
@@ -127,10 +141,24 @@ export function addStudent(
  */
 export async function getAllStalls(): Promise<StallRegistrationRecord[]> {
   const sbStalls = await fetchStallsFromSupabase();
-  if (sbStalls !== null) {
-    return sbStalls;
+  const local = readDb().stalls;
+
+  if (sbStalls !== null && sbStalls.length > 0) {
+    const sbNames = new Set(
+      sbStalls.map((s) => s.stall_name.toLowerCase().trim())
+    );
+    const uniqueLocal = local.filter(
+      (l) => !sbNames.has(l.stall_name.toLowerCase().trim())
+    );
+    return [...sbStalls, ...uniqueLocal];
   }
-  return readDb().stalls;
+
+  // If Supabase returned empty (e.g. RLS blocking select) or null, return local records
+  if (local.length > 0) {
+    return local;
+  }
+
+  return sbStalls !== null ? sbStalls : local;
 }
 
 export function addStall(

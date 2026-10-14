@@ -76,3 +76,22 @@ CREATE POLICY "Allow select for stall registrations"
     FOR SELECT
     TO anon, authenticated
     USING (true);
+
+-- ── Enable Realtime for live Admin Dashboard auto-updates ──
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'student_registrations'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE student_registrations;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'stall_registrations'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE stall_registrations;
+    END IF;
+END $$;
+

@@ -206,7 +206,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 .order('created_at', { ascending: false }),
             ]);
 
-            if (sbStudents.data) {
+            if (sbStudents.error) {
+              console.warn('[AdminDashboard] Supabase students query error:', sbStudents.error.message);
+            }
+            if (sbStalls.error) {
+              console.warn('[AdminDashboard] Supabase stalls query error:', sbStalls.error.message);
+            }
+
+            if (sbStudents.data && sbStudents.data.length > 0) {
               loadedStudents = sbStudents.data.map((row: any) => ({
                 id: String(row.id),
                 rollNo: String(row.roll_number || ''),
@@ -220,7 +227,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               }));
             }
 
-            if (sbStalls.data) {
+            if (sbStalls.data && sbStalls.data.length > 0) {
               loadedStalls = sbStalls.data.map((row: any) => ({
                 id: String(row.id),
                 registration_category: (row.registration_category || 'BBA') as
@@ -252,43 +259,74 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
         }
 
-        // 2. Secondary fallback: Server endpoints (used if Supabase direct query fails)
-        if (!loadedOverview || !loadedStudents || !loadedStalls) {
+        // 2. Secondary fallback: Server endpoints (used if Supabase direct query fails or returned 0 records due to RLS)
+        if (
+          !loadedOverview ||
+          !loadedStudents ||
+          !loadedStalls ||
+          (loadedStudents.length === 0 && loadedStalls.length === 0)
+        ) {
           try {
             const [resOverview, resStudents, resStalls] = await Promise.all([
-              fetch('/api/admin/overview', { headers: authHeaders }),
-              fetch('/api/admin/students', { headers: authHeaders }),
-              fetch('/api/admin/stalls', { headers: authHeaders }),
+              fetch('/api/admin/overview', { headers: authHeaders }).catch(() => null),
+              fetch('/api/admin/students', { headers: authHeaders }).catch(() => null),
+              fetch('/api/admin/stalls', { headers: authHeaders }).catch(() => null),
             ]);
 
             if (
-              resOverview.status === 401 ||
-              resStudents.status === 401 ||
-              resStalls.status === 401
+              resOverview?.status === 401 ||
+              resStudents?.status === 401 ||
+              resStalls?.status === 401
             ) {
               onLogout();
               return;
             }
 
-            if (resOverview.ok && resStudents.ok && resStalls.ok) {
-              loadedOverview = await resOverview.json();
-              const sData = await resStudents.json();
-              const stData = await resStalls.json();
-              loadedStudents = sData.students || [];
-              loadedStalls = stData.stalls || [];
+            let sData: any = null;
+            let stData: any = null;
+            let oData: any = null;
+
+            if (resStudents?.ok) {
+              sData = await resStudents.json().catch(() => null);
+            }
+            if (resStalls?.ok) {
+              stData = await resStalls.json().catch(() => null);
+            }
+            if (resOverview?.ok) {
+              oData = await resOverview.json().catch(() => null);
+            }
+
+            const serverStudents = sData?.students;
+            const serverStalls = stData?.stalls;
+
+            if (Array.isArray(serverStudents) && (serverStudents.length > 0 || !loadedStudents)) {
+              loadedStudents = serverStudents;
+            }
+            if (Array.isArray(serverStalls) && (serverStalls.length > 0 || !loadedStalls)) {
+              loadedStalls = serverStalls;
+            }
+
+            if (oData && typeof oData === 'object' && typeof oData.totalStudents === 'number') {
+              loadedOverview = oData;
+            } else if (loadedStudents && loadedStalls) {
+              loadedOverview = computeMetricsFromRecords(
+                loadedStudents,
+                loadedStalls
+              );
             }
           } catch (serverErr) {
             console.warn('[AdminDashboard] Server endpoint fallback failed:', serverErr);
           }
         }
 
-        if (loadedOverview && loadedStudents && loadedStalls) {
-          setMetrics(loadedOverview);
-          setStudents(loadedStudents);
-          setStalls(loadedStalls);
-        } else if (!metrics) {
-          throw new Error('Unable to connect to database or server. Please verify database connection.');
-        }
+        const finalStudents = loadedStudents || [];
+        const finalStalls = loadedStalls || [];
+        const finalOverview =
+          loadedOverview || computeMetricsFromRecords(finalStudents, finalStalls);
+
+        setMetrics(finalOverview);
+        setStudents(finalStudents);
+        setStalls(finalStalls);
       } catch (err: any) {
         setError(err.message || 'Error loading dashboard data.');
       } finally {
