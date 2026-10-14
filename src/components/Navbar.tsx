@@ -231,7 +231,7 @@ const Navbar: React.FC = () => {
                     className={`navbar__drawer-music-btn ${isPlaying ? 'active' : ''}`}
                     onClick={togglePlay}
                   >
-                    {isPlaying ? 'PLAYING' : 'MUTED · TAP TO PLAY'}
+                    {isPlaying ? 'PLAYING · TAP TO MUTE' : 'MUTED · TAP TO PLAY'}
                   </button>
                 </div>
 

@@ -48,17 +48,18 @@ interface MusicProviderProps {
 export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [isMobile, setIsMobile] = useState<boolean>(checkIsMobile);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(() => checkIsMobile());
-  const [volume, setVolumeState] = useState<number>(0.75);
+  // Default unmuted on load
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [volume, setVolumeState] = useState<number>(0.8);
   const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userManuallyStoppedRef = useRef<boolean>(false);
-  const targetVolumeRef = useRef<number>(0.75);
+  const targetVolumeRef = useRef<number>(0.8);
   const fadeIntervalRef = useRef<number | null>(null);
 
-  // Resize listener to track mobile screen status
+  // Resize listener
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(checkIsMobile());
@@ -76,9 +77,9 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
       window.clearInterval(fadeIntervalRef.current);
     }
 
-    audio.volume = 0.05;
-    const step = (targetVol - 0.05) / 15;
-    let current = 0.05;
+    audio.volume = 0.1;
+    const step = (targetVol - 0.1) / 10;
+    let current = 0.1;
 
     fadeIntervalRef.current = window.setInterval(() => {
       current += step;
@@ -91,96 +92,83 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
       } else {
         audio.volume = Math.max(0, Math.min(1, current));
       }
-    }, 80);
+    }, 60);
   }, []);
 
-  // Helper to start playback
-  const internalPlay = useCallback(
-    (forceUnmute = false) => {
-      const audio = audioRef.current;
-      if (!audio) return;
+  // Play audio unmuted automatically
+  const internalPlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-      const mobile = checkIsMobile();
+    // Ensure completely unmuted
+    audio.muted = false;
+    setIsMuted(false);
 
-      if (forceUnmute || !mobile) {
-        audio.muted = false;
-        setIsMuted(false);
-      } else {
-        // Mobile starts MUTED by default
-        audio.muted = true;
-        setIsMuted(true);
-      }
+    audio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        setAutoplayBlocked(false);
+        startSmoothFadeIn(targetVolumeRef.current);
+      })
+      .catch((err) => {
+        console.log('[Music] Autoplay policy prevented immediate unmuted sound, attaching gesture unlock:', err);
+        setAutoplayBlocked(true);
 
-      audio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setAutoplayBlocked(false);
-          if (!audio.muted) {
-            startSmoothFadeIn(targetVolumeRef.current);
+        // Fallback: unlock unmuted audio on first gesture anywhere on screen
+        const unlockAudioOnGesture = () => {
+          if (!userManuallyStoppedRef.current && audioRef.current) {
+            audioRef.current.muted = false;
+            audioRef.current
+              .play()
+              .then(() => {
+                setIsPlaying(true);
+                setIsMuted(false);
+                setAutoplayBlocked(false);
+                startSmoothFadeIn(targetVolumeRef.current);
+              })
+              .catch(() => null);
           }
-        })
-        .catch(() => {
-          setAutoplayBlocked(true);
+          cleanupGestureListeners();
+        };
 
-          // On mobile or blocked desktop, attach one-time unlock listener
-          const unlockOnGesture = () => {
-            if (!userManuallyStoppedRef.current && audioRef.current) {
-              const currentMob = checkIsMobile();
-              if (currentMob) {
-                audioRef.current.muted = true;
-                setIsMuted(true);
-              }
-              audioRef.current
-                .play()
-                .then(() => {
-                  setIsPlaying(true);
-                  setAutoplayBlocked(false);
-                })
-                .catch(() => null);
-            }
-            cleanup();
-          };
+        const cleanupGestureListeners = () => {
+          window.removeEventListener('click', unlockAudioOnGesture);
+          window.removeEventListener('pointerdown', unlockAudioOnGesture);
+          window.removeEventListener('touchstart', unlockAudioOnGesture);
+          window.removeEventListener('touchend', unlockAudioOnGesture);
+          window.removeEventListener('keydown', unlockAudioOnGesture);
+          window.removeEventListener('scroll', unlockAudioOnGesture);
+        };
 
-          const cleanup = () => {
-            window.removeEventListener('click', unlockOnGesture);
-            window.removeEventListener('touchstart', unlockOnGesture);
-            window.removeEventListener('keydown', unlockOnGesture);
-          };
+        window.addEventListener('click', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('pointerdown', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('touchstart', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('touchend', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('keydown', unlockAudioOnGesture, { once: true, passive: true });
+        window.addEventListener('scroll', unlockAudioOnGesture, { once: true, passive: true });
+      });
+  }, [startSmoothFadeIn]);
 
-          window.addEventListener('click', unlockOnGesture, { once: true, passive: true });
-          window.addEventListener('touchstart', unlockOnGesture, { once: true, passive: true });
-          window.addEventListener('keydown', unlockOnGesture, { once: true, passive: true });
-        });
-    },
-    [startSmoothFadeIn]
-  );
-
-  // Initialize audio on mount
+  // Initialize and play unmuted on page load
   useEffect(() => {
     const audio = new Audio();
     audio.src = AUDIO_TRACK_URL;
     audio.loop = true;
     audio.preload = 'auto';
     audio.volume = targetVolumeRef.current;
+    audio.muted = false;
 
-    const mobile = checkIsMobile();
-    if (mobile) {
-      // Mobile device: by default mute!
-      audio.muted = true;
-      setIsMuted(true);
-    } else {
-      audio.muted = false;
+    audio.onplay = () => {
+      setIsPlaying(true);
       setIsMuted(false);
-    }
-
-    audio.onplay = () => setIsPlaying(true);
+    };
     audio.onpause = () => setIsPlaying(false);
 
     audioRef.current = audio;
 
-    // Start playback by default (muted on mobile, audible on desktop)
-    internalPlay(false);
+    // Start playing unmuted automatically on page load!
+    internalPlay();
 
     return () => {
       if (fadeIntervalRef.current) {
@@ -199,13 +187,11 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
     userManuallyStoppedRef.current = true;
     audio.pause();
-    audio.muted = true;
     setIsPlaying(false);
-    setIsMuted(true);
     setAutoplayBlocked(false);
   }, []);
 
-  // Play and un-mute music manually
+  // Play music manually anytime
   const playMusic = useCallback(() => {
     userManuallyStoppedRef.current = false;
     const audio = audioRef.current;
@@ -214,22 +200,17 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
       setIsMuted(false);
       audio.volume = targetVolumeRef.current;
     }
-    internalPlay(true);
+    internalPlay();
   }, [internalPlay]);
 
-  // Seamless 1-tap toggle (plays & un-mutes if off, mutes & pauses if on)
+  // 1-tap toggle in navbar
   const togglePlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying && !isMuted) {
-      // Sound is actively playing -> Stop/Mute it
+    if (isPlaying) {
       stopMusic();
     } else {
-      // Muted or stopped -> Unmute and Play!
       playMusic();
     }
-  }, [isPlaying, isMuted, stopMusic, playMusic]);
+  }, [isPlaying, stopMusic, playMusic]);
 
   const toggleMute = useCallback(() => {
     const audio = audioRef.current;
@@ -258,17 +239,18 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // When landing page reveals after loader countdown
   const notifyReveal = useCallback(() => {
     setIsRevealed(true);
     if (!userManuallyStoppedRef.current && !isPlaying) {
-      internalPlay(false);
+      internalPlay();
     }
   }, [internalPlay, isPlaying]);
 
   return (
     <MusicContext.Provider
       value={{
-        isPlaying: isPlaying && !isMuted,
+        isPlaying,
         isMuted,
         isMobile,
         volume,
