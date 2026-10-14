@@ -2,8 +2,9 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { Download, FileText, Edit3, RotateCcw, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Download, FileText, Edit3, RotateCcw, AlertCircle, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import MagneticButton from './MagneticButton';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import './PassGenerator.css';
 
 /* ---- Types ---- */
@@ -70,7 +71,8 @@ interface PassCardProps {
 const DigitalPassCard = React.forwardRef<HTMLDivElement, PassCardProps>(
   ({ data, exportMode = false }, ref) => {
     const semNum = data.semester.replace(/[^0-9]/g, '');
-    const passCode = `RANG-${(data.rollNo.trim().toUpperCase() || 'LJC').slice(0, 8)}-${semNum || '1'}-2026`;
+    const deptPrefix = data.department ? `${data.department}-` : '';
+    const passCode = `RANG-${deptPrefix}${(data.rollNo.trim().toUpperCase() || 'LJC').slice(0, 8)}-${semNum || '1'}-2026`;
 
     return (
       <div
@@ -234,6 +236,8 @@ const PassGenerator: React.FC = () => {
     semester: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadType, setDownloadType] = useState<'pdf' | 'png' | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -255,6 +259,7 @@ const PassGenerator: React.FC = () => {
   const setField = <K extends keyof PassData>(key: K, value: PassData[K]) => {
     setPassData((prev) => ({ ...prev, [key]: value }));
     if (errors[key as keyof FormErrors]) setErrors((prev) => ({ ...prev, [key]: undefined }));
+    if (dbError) setDbError(null);
   };
 
   const validate = useCallback((): boolean => {
@@ -288,21 +293,84 @@ const PassGenerator: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   }, [passData]);
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!validate()) return;
-    setPassData((prev) => ({ ...prev, rollNo: prev.rollNo.trim(), name: prev.name.trim() }));
-    setStep('pass');
-    setFeedback(null);
+
+    const cleanRoll = passData.rollNo.trim();
+    setIsSubmitting(true);
+    setDbError(null);
+
+    const cleanName = passData.name.trim();
+    const semNum = passData.semester.replace(/[^0-9]/g, '') || '1';
+    const cleanRollUpper = cleanRoll.toUpperCase().slice(0, 8) || 'LJC';
+    const deptPrefix = passData.department ? `${passData.department}-` : '';
+    const passCode = `RANG-${deptPrefix}${cleanRollUpper}-${semNum}-2026`;
+
+    try {
+      // 1. Verify Supabase client configuration
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error('Supabase configuration error: Database client is not ready. Please verify VITE_SUPABASE_URL and key in .env.local.');
+      }
+
+      // 2. Save directly into Supabase table: student_registrations
+      // Note: we do not chain .select() to respect anon RLS policy
+      const { error: sbError } = await supabase
+        .from('student_registrations')
+        .insert([
+          {
+            roll_number: cleanRoll,
+            full_name: cleanName,
+            department: passData.department,
+            semester: passData.semester,
+            pass_code: passCode,
+          },
+        ]);
+
+      if (sbError) {
+        throw new Error(sbError.message || 'Failed to save student registration in Supabase.');
+      }
+
+      // 3. Also sync to local backend so admin dashboard has real-time record
+      await fetch('/api/registrations/student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rollNo: cleanRoll,
+          name: cleanName,
+          department: passData.department,
+          semester: passData.semester,
+          passCode,
+        }),
+      }).catch((err) => {
+        console.warn('[PassGenerator] Sync note:', err);
+      });
+
+      // Show success and move to digital pass card view only after database confirms insert
+      setPassData((prev) => ({ ...prev, rollNo: cleanRoll, name: cleanName }));
+      setStep('pass');
+      setFeedback(null);
+    } catch (err: any) {
+      console.error('[PassGenerator] Database insert error:', err);
+      setDbError(err.message || 'Database registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleEdit = () => { setStep('form'); setFeedback(null); };
+  const handleEdit = () => {
+    setStep('form');
+    setFeedback(null);
+    setDbError(null);
+  };
 
   const handleReset = () => {
     setPassData({ rollNo: '', name: '', department: '', semester: '' });
     setErrors({});
     setStep('form');
     setFeedback(null);
+    setDbError(null);
   };
 
   /* Capture the off-screen export card as a high-res PNG data URL */
@@ -573,9 +641,45 @@ const PassGenerator: React.FC = () => {
                   )}
                 </div>
 
-                <MagneticButton type="submit" className="pass-form__submit">
-                  <Sparkles size={17} aria-hidden="true" />
-                  <span>Generate My Pass</span>
+                {dbError && (
+                  <div
+                    className="pass-form__error-banner"
+                    role="alert"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: '#FEE2E2',
+                      border: '1px solid #F87171',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      color: '#991B1B',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <AlertCircle size={16} />
+                    <span>{dbError}</span>
+                  </div>
+                )}
+
+                <MagneticButton
+                  type="submit"
+                  className="pass-form__submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={17} className="admin-spin" aria-hidden="true" />
+                      <span>Confirming Registration...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={17} aria-hidden="true" />
+                      <span>Generate My Pass</span>
+                    </>
+                  )}
                 </MagneticButton>
 
                 <p className="pass-form__note">

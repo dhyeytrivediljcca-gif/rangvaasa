@@ -1,11 +1,24 @@
 import React from 'react';
 import './Footer.css';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onOpenAdmin?: () => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
   const handleScrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleAdminClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onOpenAdmin) {
+      onOpenAdmin();
+    } else {
+      window.location.href = '/admin';
     }
   };
 
@@ -156,12 +169,24 @@ const Footer: React.FC = () => {
           </p>
         </div>
 
-        {/* Creator Signature Credit */}
+        {/* Creator Signature Credit (Preserved Exactly) */}
         <div className="footer__creator" aria-label="Creator Credit">
           <div className="footer__creator-divider" aria-hidden="true" />
           <p className="footer__creator-text">
             Made by Dhyey Trivedi · Sem-5 · LJCCA
           </p>
+        </div>
+
+        {/* Hidden Admin Access at absolute bottom */}
+        <div className="footer__admin-bottom" aria-hidden="false">
+          <a
+            href="/admin"
+            className="footer__admin-anchor"
+            onClick={handleAdminClick}
+            aria-label="Admin Access"
+          >
+            Admin
+          </a>
         </div>
       </div>
     </footer>

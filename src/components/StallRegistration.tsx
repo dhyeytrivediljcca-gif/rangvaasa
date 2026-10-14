@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Store, CheckCircle2, Loader2, Info } from 'lucide-react';
 import MagneticButton from './MagneticButton';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import './StallRegistration.css';
 
 /* ================================================================
@@ -140,27 +141,43 @@ const StallRegistration: React.FC = () => {
     };
 
     try {
-      if (SUPABASE_CONFIGURED) {
-        // -- Uncomment when Supabase is set up: --
-        // const { error } = await supabase
-        //   .from('stall_registrations')
-        //   .insert([payload]);
-        // if (error) throw error;
-        throw new Error('Supabase client not yet instantiated. Follow setup instructions.');
-      } else {
-        // Demo mode: simulate network delay, log to console
-        await new Promise((r) => setTimeout(r, 1200));
-        console.info('[StallRegistration] Demo mode — registration payload:', payload);
-        // In production this would be a real DB insert.
-        // Data is NOT permanently stored in demo mode.
+      // 1. Verify Supabase configuration
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error('Supabase configuration error: Database client is not ready. Please verify VITE_SUPABASE_URL and key in .env.local.');
       }
+
+      // 2. Direct insert into Supabase table: stall_registrations
+      // Note: we do not chain .select() to respect anon RLS policy
+      const { error: sbError } = await supabase
+        .from('stall_registrations')
+        .insert([
+          {
+            registration_category: formData.registration_category,
+            stall_name: formData.stall_name.trim(),
+            owner_full_name: formData.owner_full_name.trim(),
+            stall_type: formData.stall_type,
+          },
+        ]);
+
+      if (sbError) {
+        throw new Error(sbError.message || 'Failed to submit stall registration to Supabase.');
+      }
+
+      // 3. Also sync to local backend
+      await fetch('/api/registrations/stall', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch((err) => {
+        console.warn('[StallRegistration] Local sync notice:', err);
+      });
 
       setSubmittedName(payload.stall_name);
       setStatus('success');
       setFormData(EMPTY_FORM);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[StallRegistration] Submission error:', err);
-      setErrorMsg('Registration could not be saved. Please try again.');
+      setErrorMsg(err.message || 'Registration could not be saved. Please try again.');
       setStatus('error');
     }
   };
@@ -221,24 +238,7 @@ const StallRegistration: React.FC = () => {
           </motion.p>
         </div>
 
-        {/* Demo banner — shown when Supabase is not configured */}
-        {!SUPABASE_CONFIGURED && (
-          <motion.div
-            className="stall-demo-banner"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            role="note"
-          >
-            <Info size={15} aria-hidden="true" />
-            <span>
-              <strong>Demo mode:</strong> Submissions are not permanently stored
-              yet. Connect Supabase to enable live registrations — see{' '}
-              <code>StallRegistration.tsx</code> for setup instructions.
-            </span>
-          </motion.div>
-        )}
+
 
         {/* Content wrapper */}
         <div className="stall-section__wrapper">

@@ -290,3 +290,36 @@
     padding: 0 0.5rem;
   }
 }
+
+/* --- Subtle Discreet Admin Access (Absolute bottom of footer) --- */
+.footer__admin-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.65rem;
+  padding-bottom: 0.25rem;
+}
+
+.footer__admin-anchor {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.35;
+  text-decoration: none;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: opacity 0.25s ease, color 0.25s ease;
+  padding: 0.2rem 0.6rem;
+}
+
+.footer__admin-anchor:hover,
+.footer__admin-anchor:focus-visible {
+  opacity: 0.85;
+  color: var(--text-primary);
+  outline: none;
+}
+
