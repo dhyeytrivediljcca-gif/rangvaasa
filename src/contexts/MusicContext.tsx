@@ -95,58 +95,97 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     }, 60);
   }, []);
 
-  // Play audio unmuted automatically
+  // Play audio unmuted automatically across all devices including mobile
   const internalPlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Ensure completely unmuted
+    // By default unmuted everywhere (desktop and mobile)
     audio.muted = false;
     setIsMuted(false);
+    audio.volume = targetVolumeRef.current;
 
     audio
       .play()
       .then(() => {
         setIsPlaying(true);
+        setIsMuted(false);
         setAutoplayBlocked(false);
         startSmoothFadeIn(targetVolumeRef.current);
       })
       .catch((err) => {
-        console.log('[Music] Autoplay policy prevented immediate unmuted sound, attaching gesture unlock:', err);
+        console.log(
+          '[Music] Mobile/browser autoplay policy prevented instant unmuted sound. Attaching mobile touch unlock:',
+          err
+        );
         setAutoplayBlocked(true);
 
-        // Fallback: unlock unmuted audio on first gesture anywhere on screen
+        // Preload/buffer in background so audio begins instantly on user's first touch
+        try {
+          audio.muted = true;
+          audio.play().catch(() => {});
+        } catch {}
+
+        // Fallback: unlock and un-mute audio on user's first touch/tap anywhere on screen
         const unlockAudioOnGesture = () => {
-          if (!userManuallyStoppedRef.current && audioRef.current) {
-            audioRef.current.muted = false;
-            audioRef.current
+          if (userManuallyStoppedRef.current) {
+            cleanupGestureListeners();
+            return;
+          }
+
+          if (audioRef.current) {
+            const currentAudio = audioRef.current;
+            currentAudio.muted = false;
+            currentAudio.volume = targetVolumeRef.current;
+
+            currentAudio
               .play()
               .then(() => {
                 setIsPlaying(true);
                 setIsMuted(false);
                 setAutoplayBlocked(false);
                 startSmoothFadeIn(targetVolumeRef.current);
+                cleanupGestureListeners();
               })
-              .catch(() => null);
+              .catch((playErr) => {
+                console.log('[Music] Awaiting qualifying touch interaction:', playErr);
+              });
           }
-          cleanupGestureListeners();
         };
 
         const cleanupGestureListeners = () => {
-          window.removeEventListener('click', unlockAudioOnGesture);
-          window.removeEventListener('pointerdown', unlockAudioOnGesture);
-          window.removeEventListener('touchstart', unlockAudioOnGesture);
-          window.removeEventListener('touchend', unlockAudioOnGesture);
-          window.removeEventListener('keydown', unlockAudioOnGesture);
-          window.removeEventListener('scroll', unlockAudioOnGesture);
+          const targets = [window, document, document.body];
+          const events = [
+            'touchstart',
+            'touchend',
+            'pointerdown',
+            'pointerup',
+            'click',
+            'keydown',
+          ];
+          targets.forEach((target) => {
+            if (!target) return;
+            events.forEach((evt) => {
+              target.removeEventListener(evt, unlockAudioOnGesture);
+            });
+          });
         };
 
-        window.addEventListener('click', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('pointerdown', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('touchstart', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('touchend', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('keydown', unlockAudioOnGesture, { once: true, passive: true });
-        window.addEventListener('scroll', unlockAudioOnGesture, { once: true, passive: true });
+        const targets = [window, document, document.body];
+        const events = [
+          'touchstart',
+          'touchend',
+          'pointerdown',
+          'pointerup',
+          'click',
+          'keydown',
+        ];
+        targets.forEach((target) => {
+          if (!target) return;
+          events.forEach((evt) => {
+            target.addEventListener(evt, unlockAudioOnGesture, { passive: true });
+          });
+        });
       });
   }, [startSmoothFadeIn]);
 
